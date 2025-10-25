@@ -8,6 +8,9 @@ Spring Boot REST API для управления инвестиционным п
 - Добавление/просмотр акций
 - Покупка акций в портфель
 - Расчет прибыли и статистики
+- Аутентификация JWT
+- Отслеживание цен акций в реальном времени через WebSocket
+
 
 ## Технологии
 - Java 21, Spring Boot 3
@@ -24,28 +27,58 @@ Spring Boot REST API для управления инвестиционным п
 - `GET /api/portfolios/{id}/stats` - статистика портфеля
 
 ## Структура проекта
-portfolio-tracker/
-├── src/main/java/com/example/portfolio_tracker/
-│   ├── PortfolioTrackerApplication.java (запуск проекта)
-│   ├── controller/
-│   │   ├── PortfolioController.java (обаботчики эндпоинтов)
-│   │   └── StockController.java
-│   ├── service/
-│   │   ├── PortfolioService.java (методы, выполняющие эндпоинты)
-│   │   └── StockService.java
-│   ├── repository/
-│   │   ├── PortfolioRepository.java (работа с бд)
-│   │   ├── StockRepository.java
-│   │   └── PortfolioItemRepository.java
-│   ├── models/
-│   │   ├── Portfolio.java (сущности)
-│   │   ├── Stock.java
-│   │   └── PortfolioItem.java
-│   └── dto/
-│       └── PortfolioStats.java (вывод статистики портфеля на основе айтемов портфеля)
-├── src/main/resources/
-│   └── application.properties
-├── pom.xml
-└── README.md
-
+portfolio_tracker/
+├── src/
+│   ├── main/
+│   │   ├── java/com/example/portfolio_tracker/
+│   │   │   ├── config/
+│   │   │   │   ├── JwtAuthFilter.java
+│   │   │   │   ├── SecurityConfig.java
+│   │   │   │   └── WebSocketConfig.java
+│   │   │   ├── controller/
+│   │   │   │   ├── AuthController.java
+│   │   │   │   ├── PortfolioController.java
+│   │   │   │   ├── StockController.java
+│   │   │   │   ├── TestController.java
+│   │   │   │   └── WebSocketController.java
+│   │   │   ├── dto/
+│   │   │   │   ├── LoginRequest.java
+│   │   │   │   ├── PortfolioItemUpdate.java
+│   │   │   │   ├── PortfolioStats.java
+│   │   │   │   ├── PortfolioUpdate.java
+│   │   │   │   ├── RegistrationRequest.java
+│   │   │   │   └── StockPriceUpdate.java
+│   │   │   ├── exceptions/
+│   │   │   │   ├── BusinessException.java
+│   │   │   │   ├── PortfolioNotFoundException.java
+│   │   │   │   └── StockNotFoundException.java
+│   │   │   ├── models/
+│   │   │   │   ├── Portfolio.java
+│   │   │   │   ├── PortfolioItem.java
+│   │   │   │   ├── Stock.java
+│   │   │   │   └── User.java
+│   │   │   ├── repository/
+│   │   │   │   ├── PortfolioItemRepository.java
+│   │   │   │   ├── PortfolioRepository.java
+│   │   │   │   ├── StockRepository.java
+│   │   │   │   └── UserRepository.java
+│   │   │   ├── service/
+│   │   │   │   ├── AuthService.java
+│   │   │   │   ├── PortfolioService.java
+│   │   │   │   ├── StockService.java
+│   │   │   │   ├── UserDetailsImpl.java
+│   │   │   │   ├── UserDetailsServiceImpl.java
+│   │   │   │   └── WebSocketService.java
+│   │   │   └── util/
+│   │   │       ├── JwtUtils.java
+│   │   │       └── PortfolioTrackerApplication.java
+│   │   └── resources/
+│   │       ├── static/
+│   │       └── application.properties
+├── target/
+├── .gitignore
+├── .gitattributes
+├── HELP.md
+├── mvnw
+└── pom.xml
 

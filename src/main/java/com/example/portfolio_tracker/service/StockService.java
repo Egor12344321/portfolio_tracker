@@ -1,5 +1,6 @@
 package com.example.portfolio_tracker.service;
 
+import com.example.portfolio_tracker.exceptions.StockNotFoundException;
 import com.example.portfolio_tracker.models.Stock;
 import com.example.portfolio_tracker.repository.StockRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,17 @@ public class StockService {
     @Autowired
     StockRepository stockRepository;
 
+    @Autowired
+    private WebSocketService webSocketService;
+
+    @Autowired
+    private PortfolioService portfolioService;
+
+    public Stock getStockByTicker(String ticker){
+        return stockRepository.findByTicker(ticker)
+                .orElseThrow(() -> new StockNotFoundException("Сток с таким тикером не найден"));
+    }
+
     public List<Stock> getAllStocks(){
         return stockRepository.findAll();
     }
@@ -24,13 +36,18 @@ public class StockService {
 
     }
 
-    public Stock getStockByTicker(String ticker){
-        if (stockRepository.findByTicker(ticker).isPresent()) {
-            return stockRepository.findByTicker(ticker).get();
-        } else {
-            return null;
-        }
-    }
 
+
+    public void updateStockPrice(String ticker, Double price){
+        System.out.println("Я в апдейте стокпрайса");
+        Stock stock = getStockByTicker(ticker);
+
+        if (stock != null){
+            stock.setCurrentPrice(price);
+            stockRepository.save(stock);
+            webSocketService.sendStockPriceUpdate(ticker, price);
+
+            }
+    }
 
 }

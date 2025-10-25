@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Portfolio Tracker - WebSocket Test</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+</head>
+<body>
+<h1>Portfolio Tracker - WebSocket Test</h1>
+
+<div>
+    <h3>Connection:</h3>
+    <button onclick="connect()">Connect</button>
+    <button onclick="disconnect()">Disconnect</button>
+    <span id="status" style="color: red;">Disconnected</span>
+</div>
+
+<div>
+    <h3>Subscriptions:</h3>
+    <button onclick="subscribeToStocks()">Subscribe to Stock Prices</button>
+    <button onclick="subscribeToPortfolios()">Subscribe to Portfolio Updates</button>
+</div>
+
+<div>
+    <h3>Messages:</h3>
+    <div id="messages" style="border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: scroll;"></div>
+</div>
+
+<script>
+    let stompClient = null;
+    const statusElement = document.getElementById('status');
+    const messagesElement = document.getElementById('messages');
+
+    function logMessage(message) {
+        messagesElement.innerHTML += '<div>' + new Date().toLocaleTimeString() + ': ' + message + '</div>';
+        messagesElement.scrollTop = messagesElement.scrollHeight;
+    }
+
+    function connect() {
+        const socket = new SockJS('/ws-portfolio');
+        stompClient = Stomp.over(socket);
+
+        stompClient.connect({}, function(frame) {
+            statusElement.innerHTML = 'Connected';
+            statusElement.style.color = 'green';
+            logMessage('WebSocket connected successfully');
+        }, function(error) {
+            statusElement.innerHTML = 'Connection failed';
+            statusElement.style.color = 'red';
+            logMessage('Connection error: ' + error);
+        });
+    }
+
+    function disconnect() {
+        if (stompClient !== null) {
+            stompClient.disconnect();
+        }
+        statusElement.innerHTML = 'Disconnected';
+        statusElement.style.color = 'gray';
+        logMessage('WebSocket disconnected');
+    }
+
+    function subscribeToStocks() {
+        if (stompClient && stompClient.connected) {
+            stompClient.subscribe('/topic/stock-prices', function(message) {
+                const stockUpdate = JSON.parse(message.body);
+                logMessage('Stock: ' + stockUpdate.ticker + ' = $' + stockUpdate.price);
+            });
+            logMessage('Subscribed to stock price updates');
+        } else {
+            logMessage('Please connect first');
+        }
+    }
+
+    function subscribeToPortfolios() {
+        if (stompClient && stompClient.connected) {
+            stompClient.subscribe('/topic/portfolio-updates', function(message) {
+                const portfolioUpdate = JSON.parse(message.body);
+                logMessage('Portfolio updated: ID ' + portfolioUpdate.portfolioId);
+            });
+            logMessage('Subscribed to portfolio updates');
+        } else {
+            logMessage('Please connect first');
+        }
+    }
+</script>
+</body>
+</html>

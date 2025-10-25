@@ -18,8 +18,8 @@ public class PortfolioController {
     PortfolioService portfolioService;
 
     @GetMapping
-    public List<Portfolio> getAllPortfolios(){
-        return portfolioService.getAllPortfolios();
+    public ResponseEntity<List<Portfolio>> getAllPortfolios(){
+        return ResponseEntity.ok(portfolioService.getAllPortfolios());
     }
 
     @PostMapping

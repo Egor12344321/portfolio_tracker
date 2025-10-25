@@ -1,6 +1,8 @@
 package com.example.portfolio_tracker.service;
 
 import com.example.portfolio_tracker.dto.PortfolioStats;
+import com.example.portfolio_tracker.exceptions.PortfolioNotFoundException;
+import com.example.portfolio_tracker.exceptions.StockNotFoundException;
 import com.example.portfolio_tracker.models.Portfolio;
 import com.example.portfolio_tracker.models.PortfolioItem;
 import com.example.portfolio_tracker.models.Stock;
@@ -25,6 +27,8 @@ public class PortfolioService {
     @Autowired
     private StockRepository stockRepository;
 
+
+
     public Portfolio createPortfolio(String portfolioName){
         Portfolio portfolio = new Portfolio(portfolioName);
         return portfolioRepository.save(portfolio);
@@ -32,36 +36,27 @@ public class PortfolioService {
 
     public List<Portfolio> getAllPortfolios(){
         List<Portfolio> portfolios = portfolioRepository.findAll();
-        if (!portfolios.isEmpty()) {
-            return portfolioRepository.findAll();
-        } else {
-            return null;
-        }
+        return portfolioRepository.findAll();
+
     }
 
-    public Optional<Portfolio> getPortfolioById(Long id){
-        return portfolioRepository.findById(id);
+    public Portfolio getPortfolioById(Long id){
+        return portfolioRepository.findById(id)
+                .orElseThrow(() -> new PortfolioNotFoundException("Портфель не найден"));
     }
 
     public PortfolioItem buyStock(Long portfolioid, String ticker, Integer count, Double price) {
-        Optional<Portfolio> portfolioOptional = getPortfolioById(portfolioid);
-        Optional<Stock> stockOptional = stockRepository.findByTicker(ticker);
-        if (portfolioOptional.isPresent() && stockOptional.isPresent()) {
-            Portfolio portfolio = portfolioOptional.get();
-            Stock stock = stockOptional.get();
-            PortfolioItem portfolioItem = new PortfolioItem(portfolio, stock, count, price);
-            return portfolioItemRepository.save(portfolioItem);
-        }
-        return null;
+       Portfolio portfolio = getPortfolioById(portfolioid);
+       Stock stock = stockRepository.findByTicker(ticker)
+                .orElseThrow(() -> new StockNotFoundException("Сток с таким тикером не найден"));
+       return new PortfolioItem(portfolio, stock, count, price);
+
+
     }
 
     public List<PortfolioItem> getPortfolioItems(Long portfolioId){
-        Optional<Portfolio> portfolioOptional = getPortfolioById(portfolioId);
-        if (portfolioOptional.isPresent()){
-            Portfolio portfolio = portfolioOptional.get();
-            return portfolioItemRepository.findByPortfolio(portfolio);
-        }
-        return null;
+        Portfolio portfolio = getPortfolioById(portfolioId);
+        return portfolioItemRepository.findByPortfolio(portfolio);
     }
 
     public PortfolioStats calculatePortfolioStats(Long portfolioId){
@@ -80,6 +75,9 @@ public class PortfolioService {
         double totalProfitLoss = totalCurrentValue - totalInvestment;
         totalProfitLossPercentage = (totalProfitLoss / totalInvestment) * 100;
         return new PortfolioStats(totalInvestment, totalCurrentValue, totalProfitLoss, totalProfitLossPercentage);
+    }
+    public void updatePortfolioWithStock(String ticker, Double price){
+        System.out.println("обновление цен в портфелях");
     }
 }
 
